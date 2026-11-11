@@ -91,6 +91,12 @@ src/
 | `npm run typecheck` | TypeScript |
 | `npm test` | Testes do timer, permissões de notificação e plugin Android |
 
+## Manutenção
+
+Orientações para atualizações e manutenção com IA: [guia de manutenção](docs/MANUTENCAO.md).
+Execute `npm run verify` para validar tipos, lint e testes; `npm run deps:check`
+confere as dependências com o SDK Expo instalado.
+
 ## Próximos passos (sugestões)
 
 - Widget de tarefas do dia e complicação de streak

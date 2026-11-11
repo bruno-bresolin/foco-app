@@ -15,7 +15,7 @@ import { TaskRow } from '@/components/TaskRow';
 import { ChooserSheet, EmptyState, Fab, SectionHeader, Screen } from '@/components/ui';
 import { useApp } from '@/context/app';
 import { C, R, SP, softShadow } from '@/constants/theme';
-import { greeting, lastNDays, longDateLabel, todayKey } from '@/lib/dates';
+import { fromKey, greeting, lastNDays, longDateLabel, todayKey } from '@/lib/dates';
 import { focusMinutesOn, groupTasks, isHabitScheduledOn } from '@/lib/stats';
 import type { Habit, Task, TaskInput, HabitInput } from '@/lib/types';
 
@@ -29,12 +29,16 @@ export default function HomeScreen() {
   const [showUpcoming, setShowUpcoming] = useState(false);
 
   const today = todayKey();
-  const weekDays = useMemo(() => lastNDays(7), []);
+  const weekDays = lastNDays(7);
 
   const groups = useMemo(() => groupTasks(data.tasks), [data.tasks]);
   const todayHabits = useMemo(
-    () => data.habits.filter((h) => isHabitScheduledOn(h, new Date())),
-    [data.habits],
+    () => data.habits.filter((h) => isHabitScheduledOn(h, fromKey(today))),
+    [data.habits, today],
+  );
+  const otherHabits = useMemo(
+    () => data.habits.filter((h) => !isHabitScheduledOn(h, fromKey(today))),
+    [data.habits, today],
   );
   const focusToday = useMemo(() => focusMinutesOn(data.sessions, today), [data.sessions, today]);
 
@@ -200,6 +204,23 @@ export default function HomeScreen() {
             />
           ))}
         </View>
+      )}
+
+      {otherHabits.length > 0 && (
+        <>
+          <SectionHeader title="Hábitos de outros dias" count={otherHabits.length} />
+          <View style={styles.listCard}>
+            {otherHabits.map((h) => (
+              <HabitRow
+                key={h.id}
+                habit={h}
+                days={weekDays}
+                onToggle={() => toggleHabitToday(h.id)}
+                onOpen={() => setHabitModal({ visible: true, habit: h })}
+              />
+            ))}
+          </View>
+        </>
       )}
 
       <ChooserSheet

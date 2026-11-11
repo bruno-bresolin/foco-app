@@ -9,7 +9,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { categoryColor } from '@/constants/categories';
 import { C, R, SP } from '@/constants/theme';
-import { WEEKDAY_TINY, dayKey, todayKey } from '@/lib/dates';
+import { WEEKDAY_SHORT, WEEKDAY_TINY, dayKey, fromKey, todayKey } from '@/lib/dates';
 import { currentStreak, isHabitDoneOn, isHabitScheduledOn } from '@/lib/stats';
 import type { Habit } from '@/lib/types';
 
@@ -28,13 +28,24 @@ export function HabitRow({
   const catColor = categoryColor(habit.categoryId);
   const today = todayKey();
   const doneToday = isHabitDoneOn(habit, today);
+  const scheduledToday = isHabitScheduledOn(habit, fromKey(today));
   const streak = currentStreak(habit);
 
   return (
     <Pressable onPress={onOpen} style={({ pressed }) => [styles.row, pressed && { backgroundColor: C.surface2 }]}>
-      <Pressable hitSlop={12} onPress={onToggle} style={styles.checkWrap}>
+      <Pressable
+        hitSlop={12}
+        onPress={onToggle}
+        disabled={!scheduledToday}
+        accessibilityRole="checkbox"
+        accessibilityLabel={`Concluir ${habit.title} hoje`}
+        accessibilityState={{ checked: doneToday, disabled: !scheduledToday }}
+        style={styles.checkWrap}
+      >
         <View style={[styles.check, doneToday && { backgroundColor: catColor, borderColor: catColor }]}>
-          {doneToday && <Ionicons name="checkmark" size={16} color="#0B0B10" />}
+          {doneToday ? <Ionicons name="checkmark" size={16} color="#0B0B10" /> : !scheduledToday ? (
+            <Ionicons name="remove" size={14} color={C.textFaint} />
+          ) : null}
         </View>
       </Pressable>
 
@@ -50,6 +61,11 @@ export function HabitRow({
             </View>
           )}
         </View>
+
+        <Text style={styles.schedule}>
+          {habit.days.length === 7 ? 'Todos os dias' : WEEKDAY_SHORT.filter((_, day) => habit.days.includes(day)).join(' · ')}
+          {!scheduledToday ? ' · Hoje não programado' : ''}
+        </Text>
 
         <View style={styles.week}>
           {days.map((d) => {
@@ -113,6 +129,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   streakText: { color: C.orange, fontSize: 11, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  schedule: { color: C.textDim, fontSize: 11, fontWeight: '600' },
   week: { flexDirection: 'row', gap: 10 },
   dayCol: { alignItems: 'center', gap: 4 },
   dot: { width: 9, height: 9, borderRadius: 5 },
